@@ -87,11 +87,33 @@ services:
     networks:
       - querypoint
 
+  minio:
+    image: minio/minio:latest
+    container_name: querypoint_minio
+    restart: unless-stopped
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+    ports:
+      - "${MINIO_PORT:-9000}:9000"
+      - "${MINIO_CONSOLE_PORT:-9001}:9001"
+    volumes:
+      - minio_data:/data
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - querypoint
+
 volumes:
   postgres_data:
   redis_data:
   rabbitmq_data:
   elastic_data:
+  minio_data:
 
 networks:
   querypoint:
